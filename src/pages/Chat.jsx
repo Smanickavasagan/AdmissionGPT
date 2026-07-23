@@ -23,13 +23,22 @@ export default function Chat() {
     if (!input.trim() || loading) return;
     const userMsg = input.trim();
     setInput('');
+
+    // Snapshot history BEFORE adding the new message
+    // Map roles: 'user' → 'human', 'agent' → 'assistant'
+    // Skip the opening greeting (index 0) since it's not a real turn
+    const history = messages.slice(1).map(m => ({
+      role: m.role === 'user' ? 'human' : 'assistant',
+      content: m.content,
+    }));
+
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setLoading(true);
     try {
       const res = await fetch(`${API}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg })
+        body: JSON.stringify({ message: userMsg, history })  // ← send full history
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: 'agent', content: data.response || 'Sorry, I could not process that.' }]);

@@ -22,17 +22,20 @@ export const useStore = create((set, get) => ({
 
   addDocuments: (files) => {
     const newDocs = files.map((file) => ({
+      // defaults — all can be overridden by the caller
       id: generateId(),
-      filename: file.name,
+      filename: file.name || file.filename || 'unknown-file',
       uploadDate: new Date().toISOString(),
       status: 'queued',
       recordCount: 0,
       processingTime: null,
-      fileSize: file.size,
+      fileSize: file.size ?? file.fileSize ?? null,
       type: 'Admission Form',
       syncStatus: 'pending',
       extractedData: {},
       progress: 0,
+      // spread the full passed object so callers can override any field
+      ...file,
     }));
     set((state) => ({ documents: [...newDocs, ...state.documents] }));
   },

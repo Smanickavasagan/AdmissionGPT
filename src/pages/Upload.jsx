@@ -11,12 +11,14 @@ import './Upload.css';
 const API = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 const formatSize = (bytes) => {
+  if (bytes == null || isNaN(bytes)) return '—';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
 const getFileIcon = (name) => {
+  if (!name) return <File size={20} />;
   const ext = name.split('.').pop().toLowerCase();
   if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff'].includes(ext)) return <Image size={20} />;
   if (ext === 'pdf') return <FileText size={20} />;
@@ -45,6 +47,7 @@ export default function Upload() {
   // Preview state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState(null);
+  const [modalTab, setModalTab] = useState('json');
 
   // Camera state
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -75,7 +78,7 @@ export default function Upload() {
     setIsExtracting(true);
     setExtractingFileName(file.name);
     setExtractError(null);
-    toast.loading('Sending image to AI OCR model...', { id: 'ocr' });
+    toast.loading('PaddleOCR extracting & Qwen AI formatting...', { id: 'ocr' });
 
     try {
       const res = await fetch(`${API}/upload_and_ocr`, { method: 'POST', body: formData });
@@ -85,16 +88,17 @@ export default function Upload() {
         throw new Error(data.detail || `Server returned error status ${res.status}`);
       }
 
-      toast.success('Text extracted successfully!', { id: 'ocr' });
+      toast.success('Text extracted & formatted into JSON!', { id: 'ocr' });
       setIsExtracting(false);
       setPreviewData(data);
+      setModalTab('json');
       setPreviewOpen(true);
       setBurst(true);
       setTimeout(() => setBurst(false), 700);
     } catch (err) {
       console.error("OCR Extraction Error:", err);
       const errMsg = err.message || 'Failed to extract text from image';
-      toast.error(`OCR Failed: ${errMsg}`, { id: 'ocr' });
+      toast.error(`Processing Failed: ${errMsg}`, { id: 'ocr' });
       setExtractError(errMsg);
       setIsExtracting(false);
     }
@@ -102,21 +106,33 @@ export default function Upload() {
 
   const handleConfirmUpload = async () => {
     setPreviewOpen(false);
-    toast.loading('AI Agent processing & saving...', { id: 'agent' });
+    toast.loading('Qwen AI saving document to database...', { id: 'agent' });
     try {
       const res = await fetch(`${API}/process_and_save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: previewData.filename, text: previewData.ocr_text })
+        body: JSON.stringify({ 
+          filename: previewData.filename, 
+          structured_json: previewData.structured_json,
+          text: previewData.ocr_text
+        })
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success('Successfully processed and saved!', { id: 'agent' });
+        toast.success('Successfully saved to database!', { id: 'agent' });
+        addDocuments([{
+          id: data.id || crypto.randomUUID(),
+          filename: data.filename || previewData?.filename || 'unknown-file',
+          status: 'complete',
+          extractedData: data.extractedData || previewData?.structured_json || {},
+          uploadDate: new Date().toISOString()
+        }]);
       } else {
-        toast.error(`Failed: ${data.detail || 'Processing failed'}`, { id: 'agent' });
+        toast.error(`Failed: ${data.detail || 'Save failed'}`, { id: 'agent' });
       }
     } catch (err) {
-      toast.error('Error contacting agent', { id: 'agent' });
+      console.error('Save to DB Error:', err);
+      toast.error(`Error saving document to database: ${err.message || err}`, { id: 'agent' });
     }
   };
 
@@ -510,46 +526,85 @@ export default function Upload() {
               </div>
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>
-              Extracting Text with AI OCR Model...
+              Extracting Text with PaddleOCR...
             </h3>
             <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px', lineHeight: '1.5' }}>
               Processing document: <strong style={{ color: '#0f172a' }}>{extractingFileName}</strong>
             </p>
             <div style={{ background: '#f1f5f9', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, color: '#1e293b', marginBottom: '4px' }}>
-                <Clock size={16} style={{ color: '#2563eb' }} /> Model is actively running on GPU
+                <Clock size={16} style={{ color: '#2563eb' }} /> High-speed PaddleOCR Engine Active
               </div>
-              <div>Please wait... AI vision models (like <code>deepseek-ocr:3b</code>) process full-resolution images on your GPU. This can take 1 to 3 minutes. Do not close this page.</div>
+              <div>Extracting text line-by-line using PaddleOCR model. This usually finishes in just a few seconds.</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* OCR Preview Modal */}
+      {/* OCR & Qwen JSON Preview Modal */}
       {previewOpen && previewData && (
-        <div className="modal-overlay">
-          <div className="camera-modal" style={{ width: '600px', maxWidth: '90%' }}>
-            <div className="camera-modal-header">
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="camera-modal" style={{ width: '650px', maxWidth: '92%' }}>
+            <div className="camera-modal-header" style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0' }}>
               <div>
-                <div className="card-title">OCR Preview</div>
-                <div className="text-sm text-muted">Review extracted text before AI processing</div>
+                <div className="card-title" style={{ fontSize: '18px', fontWeight: 600 }}>Extracted Data Preview</div>
+                <div className="text-sm text-muted">Review Qwen LLM structured JSON output for <strong>{previewData.filename}</strong></div>
               </div>
               <button className="btn btn-icon" onClick={() => setPreviewOpen(false)}>
                 <X size={18} />
               </button>
             </div>
             
-            <div style={{ padding: '20px', maxHeight: '400px', overflowY: 'auto', background: '#f8fafc', margin: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap', fontSize: '14px' }}>
-              {previewData.ocr_text || 'No text extracted.'}
+            {/* Tab switcher */}
+            <div style={{ display: 'flex', gap: '8px', padding: '12px 20px 0 20px', borderBottom: '1px solid #f1f5f9' }}>
+              <button 
+                className={`btn btn-sm ${modalTab === 'json' ? 'btn-primary' : 'btn-outline'}`} 
+                onClick={() => setModalTab('json')}
+              >
+                Structured JSON (Qwen AI)
+              </button>
+              <button 
+                className={`btn btn-sm ${modalTab === 'raw' ? 'btn-primary' : 'btn-outline'}`} 
+                onClick={() => setModalTab('raw')}
+              >
+                Raw OCR Text (PaddleOCR)
+              </button>
             </div>
 
-            <div className="camera-controls">
+            <div style={{ padding: '16px 20px', maxHeight: '420px', overflowY: 'auto' }}>
+              {modalTab === 'json' ? (
+                <div>
+                  <div style={{ marginBottom: '10px', fontSize: '13px', color: '#64748b' }}>
+                    Qwen Model extracted key fields from OCR text into JSON format:
+                  </div>
+                  <pre style={{ 
+                    background: '#0f172a', 
+                    color: '#38bdf8', 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    fontSize: '13.5px', 
+                    fontFamily: 'monospace', 
+                    overflowX: 'auto',
+                    margin: 0,
+                    lineHeight: '1.5'
+                  }}>
+                    {JSON.stringify(previewData.structured_json || {}, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap', fontSize: '14px', fontFamily: 'monospace', color: '#334155' }}>
+                  {previewData.ocr_text || 'No text extracted.'}
+                </div>
+              )}
+            </div>
+
+            <div className="camera-controls" style={{ padding: '16px 20px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
               <button className="btn btn-secondary" onClick={() => setPreviewOpen(false)}>
                 Cancel
               </button>
               <button className="btn btn-success" onClick={handleConfirmUpload}>
                 <CheckCircle size={16} />
-                Confirm & Upload
+                Save to Database
               </button>
             </div>
           </div>
