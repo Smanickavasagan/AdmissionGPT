@@ -37,6 +37,11 @@ export default function Upload() {
   const [burst, setBurst] = useState(false);
   const fileInputRef = useRef(null);
   
+  // Loading & Error states for OCR extraction
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractingFileName, setExtractingFileName] = useState('');
+  const [extractError, setExtractError] = useState(null);
+
   // Preview state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState(null);
@@ -67,17 +72,31 @@ export default function Upload() {
     const formData = new FormData();
     formData.append('file', file);
     
-    toast.loading('Extracting OCR Text...', { id: 'ocr' });
+    setIsExtracting(true);
+    setExtractingFileName(file.name);
+    setExtractError(null);
+    toast.loading('Sending image to AI OCR model...', { id: 'ocr' });
+
     try {
       const res = await fetch(`${API}/upload_and_ocr`, { method: 'POST', body: formData });
       const data = await res.json();
-      toast.dismiss('ocr');
+      
+      if (!res.ok) {
+        throw new Error(data.detail || `Server returned error status ${res.status}`);
+      }
+
+      toast.success('Text extracted successfully!', { id: 'ocr' });
+      setIsExtracting(false);
       setPreviewData(data);
       setPreviewOpen(true);
       setBurst(true);
       setTimeout(() => setBurst(false), 700);
     } catch (err) {
-      toast.error('Failed to extract OCR', { id: 'ocr' });
+      console.error("OCR Extraction Error:", err);
+      const errMsg = err.message || 'Failed to extract text from image';
+      toast.error(`OCR Failed: ${errMsg}`, { id: 'ocr' });
+      setExtractError(errMsg);
+      setIsExtracting(false);
     }
   }, []);
 
@@ -90,10 +109,11 @@ export default function Upload() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: previewData.filename, text: previewData.ocr_text })
       });
+      const data = await res.json();
       if (res.ok) {
         toast.success('Successfully processed and saved!', { id: 'agent' });
       } else {
-        toast.error('Failed to process', { id: 'agent' });
+        toast.error(`Failed: ${data.detail || 'Processing failed'}`, { id: 'agent' });
       }
     } catch (err) {
       toast.error('Error contacting agent', { id: 'agent' });
@@ -177,13 +197,16 @@ export default function Upload() {
 
   const submitPhoto = () => {
     if (!captured) return;
-    fetch(captured)
-      .then((res) => res.blob())
-      .then((blob) => {
-        const file = new File([blob], `camera-capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-        handleFiles([file]);
-        stopCamera();
-      });
+    // Convert base64 data URL → Blob → File without using fetch()
+    const [header, base64Data] = captured.split(',');
+    const mime = header.match(/:(.*?);/)[1];
+    const binary = atob(base64Data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: mime });
+    const file = new window.File([blob], `camera-capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    handleFiles([file]);
+    stopCamera();
   };
 
   const switchCamera = () => {
@@ -224,6 +247,30 @@ export default function Upload() {
           Capture with Camera
         </button>
       </div>
+
+      {/* Extract Error Alert */}
+      {extractError && (
+        <div className="card mt-4" style={{ backgroundColor: '#fef2f2', borderColor: '#fca5a5', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <AlertCircle size={20} style={{ color: '#dc2626', marginTop: '2px', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <h4 style={{ color: '#991b1b', margin: '0 0 4px 0', fontSize: '15px', fontWeight: 600 }}>
+                OCR Text Extraction Failed
+              </h4>
+              <p style={{ color: '#7f1d1d', margin: 0, fontSize: '13.5px', lineHeight: '1.4' }}>
+                {extractError}
+              </p>
+            </div>
+            <button 
+              className="btn btn-icon" 
+              onClick={() => setExtractError(null)}
+              style={{ color: '#991b1b', padding: '4px' }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Drop zone */}
       <div
@@ -448,6 +495,31 @@ export default function Upload() {
                   </button>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Extracting Loading Modal Overlay */}
+      {isExtracting && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
+          <div className="camera-modal" style={{ width: '480px', maxWidth: '90%', textAlign: 'center', padding: '32px 24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+              <div style={{ position: 'relative', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Loader size={48} className="spin" style={{ color: '#2563eb' }} />
+              </div>
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}>
+              Extracting Text with AI OCR Model...
+            </h3>
+            <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px', lineHeight: '1.5' }}>
+              Processing document: <strong style={{ color: '#0f172a' }}>{extractingFileName}</strong>
+            </p>
+            <div style={{ background: '#f1f5f9', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, color: '#1e293b', marginBottom: '4px' }}>
+                <Clock size={16} style={{ color: '#2563eb' }} /> Model is actively running on GPU
+              </div>
+              <div>Please wait... AI vision models (like <code>deepseek-ocr:3b</code>) process full-resolution images on your GPU. This can take 1 to 3 minutes. Do not close this page.</div>
             </div>
           </div>
         </div>
