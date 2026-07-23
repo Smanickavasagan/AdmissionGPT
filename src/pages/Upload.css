@@ -1,0 +1,402 @@
+.drop-zone {
+  border: 2px dashed var(--primary-200);
+  background: var(--primary-50);
+  border-radius: var(--radius-lg);
+  padding: 56px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--primary);
+  background: var(--primary-100);
+}
+
+.drop-zone.drag-over {
+  transform: scale(1.01);
+  box-shadow: 0 0 0 4px var(--primary-100);
+}
+
+.drop-zone-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--primary-100);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.drop-zone-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.drop-zone-sub {
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.format-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.format-chip {
+  padding: 4px 12px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.upload-list {
+  padding: 8px 0;
+}
+
+.upload-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--gray-100);
+  transition: background 0.1s;
+}
+
+.upload-item:last-child { border-bottom: none; }
+.upload-item:hover { background: var(--gray-50); }
+
+.upload-file-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--primary-100);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.upload-info { flex: 1; min-width: 0; }
+
+.upload-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-meta { margin-top: 2px; }
+
+.upload-error { color: var(--error); }
+
+.upload-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.upload-progress-wrap .progress-bar { flex: 1; }
+
+.upload-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.tip-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tip-icon { font-size: 22px; }
+
+.tip-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 2px;
+}
+
+.tip-desc { line-height: 1.4; }
+
+@media (max-width: 768px) {
+  .tips-grid { grid-template-columns: 1fr; }
+  .drop-zone { padding: 32px 16px; }
+}
+
+/* ── Drop zone camera button ───────────────────── */
+.drop-zone-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.drop-zone-or {
+  font-size: 13px;
+  color: var(--gray-400);
+  font-weight: 500;
+}
+
+/* ── Camera Modal ──────────────────────────────── */
+.camera-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 680px;
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.2s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--gray-200);
+  gap: 12px;
+}
+
+/* Viewfinder */
+.camera-viewfinder {
+  position: relative;
+  background: #000;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-size: 14px;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Frame guide overlay */
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.camera-frame {
+  position: relative;
+  width: 85%;
+  height: 80%;
+  border-radius: 4px;
+}
+
+.frame-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: rgba(255,255,255,0.9);
+  border-style: solid;
+}
+.frame-corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.frame-corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.frame-corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.frame-corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+.frame-label {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  background: rgba(0,0,0,0.4);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* Captured preview */
+.camera-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-captured-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.camera-preview-label {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  background: rgba(0,0,0,0.6);
+  padding: 6px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+/* Controls bar */
+.camera-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px;
+  background: var(--gray-900);
+}
+
+/* Big shutter button */
+.btn-capture {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: white;
+  border: 4px solid rgba(255,255,255,0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, background 0.1s;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+}
+.btn-capture:hover { transform: scale(1.07); }
+.btn-capture:active { transform: scale(0.95); }
+
+.btn-capture-inner {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--gray-300);
+}
+
+.camera-controls .btn {
+  color: var(--gray-200);
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  min-width: 90px;
+  justify-content: center;
+}
+.camera-controls .btn:hover {
+  background: rgba(255,255,255,0.18);
+  color: white;
+}
+.camera-controls .btn-success {
+  background: var(--success);
+  color: white;
+  border-color: var(--success);
+}
+.camera-controls .btn-success:hover { background: #059669; }
+
+@media (max-width: 640px) {
+  .camera-modal { max-width: 100%; border-radius: 12px 12px 0 0; }
+  .camera-viewfinder { aspect-ratio: 4 / 3; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .btn-capture { width: 56px; height: 56px; }
+  .btn-capture-inner { width: 44px; height: 44px; }
+}
+
+/* ── Drop zone: floating particles ──────────────────────────── */
+.dz-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation: dzFloat 4s ease-in-out infinite;
+}
+.drop-zone { position: relative; overflow: hidden; }
+.dz-p1 { width: 8px;  height: 8px;  background: rgba(37,99,235,0.25); top: 20%; left: 12%;  animation-delay: 0s;    animation-duration: 3.8s; }
+.dz-p2 { width: 6px;  height: 6px;  background: rgba(6,182,212,0.25);  top: 60%; right: 14%; animation-delay: 1.2s;  animation-duration: 4.2s; }
+.dz-p3 { width: 10px; height: 10px; background: rgba(37,99,235,0.15); top: 75%; left: 25%;  animation-delay: 2.4s;  animation-duration: 3.5s; }
+.dz-p4 { width: 5px;  height: 5px;  background: rgba(6,182,212,0.3);   top: 30%; right: 20%; animation-delay: 0.8s;  animation-duration: 4.6s; }
+
+@keyframes dzFloat {
+  0%   { opacity: 0; transform: translateY(0) scale(0.8); }
+  20%  { opacity: 1; }
+  80%  { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+}
+
+/* ── Drop zone success burst ─────────────────────────────────── */
+.drop-zone-burst {
+  animation: dzBurst 0.6s cubic-bezier(0.16,1,0.3,1) both !important;
+  border-color: var(--success) !important;
+  background: #f0fdf4 !important;
+  box-shadow: 0 0 0 6px rgba(16,185,129,0.15) !important;
+}
+@keyframes dzBurst {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.018); }
+  60%  { transform: scale(0.997); }
+  100% { transform: scale(1); }
+}
+
+/* ── Animated status icons ───────────────────────────────────── */
+.status-icon-complete {
+  animation: checkPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.status-icon-failed {
+  animation: wiggle 0.5s ease both;
+}
+.status-icon-queued {
+  animation: pulseRing 1.8s ease-in-out infinite;
+}

@@ -1,0 +1,132 @@
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.chart-card-wide {}
+.chart-card-narrow {}
+
+.dashboard-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.activity-list {
+  padding: 8px 0;
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.activity-dot-upload { background: var(--primary); }
+.activity-dot-sync { background: var(--success); }
+.activity-dot-edit { background: var(--warning); }
+.activity-dot-error { background: var(--error); }
+
+.activity-action { font-size: 13px; color: var(--gray-700); }
+.activity-meta { margin-top: 2px; }
+
+@media (max-width: 1024px) {
+  .dashboard-charts { grid-template-columns: 1fr; }
+  .dashboard-bottom { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Welcome Banner ───────────────────────────────────────────── */
+.welcome-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 32px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 40%, #3b82f6 70%, #06b6d4 100%);
+  background-size: 300% 300%;
+  animation: gradientShift 8s ease infinite;
+  box-shadow: 0 8px 32px -8px rgba(37,99,235,0.4);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  pointer-events: none;
+}
+.welcome-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: 20%;
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  pointer-events: none;
+}
+.welcome-banner-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
+}
+.welcome-banner-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+}
+.welcome-banner .btn-primary {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+.welcome-banner .btn-primary:hover:not(:disabled) {
+  background: rgba(255,255,255,0.28);
+}
+
+/* ── Live dot pulsing indicator ──────────────────────────────── */
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  margin-left: 8px;
+  vertical-align: middle;
+  position: relative;
+  flex-shrink: 0;
+}
+.live-dot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulseRing 1.5s ease-out infinite;
+}

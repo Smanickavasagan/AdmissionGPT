@@ -1,0 +1,34 @@
+.analytics-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.accuracy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accuracy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.accuracy-label {
+  width: 70px;
+  flex-shrink: 0;
+  color: var(--gray-600);
+}
+
+.accuracy-val {
+  width: 42px;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--gray-700);
+}
+
+@media (max-width: 1024px) {
+  .analytics-grid-2 { grid-template-columns: 1fr; }
+}
